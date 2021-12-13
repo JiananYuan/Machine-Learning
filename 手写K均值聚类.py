@@ -3,12 +3,17 @@ import random
 
 
 def check_consistent(last_cluster, current_cluster):
-    is_consistent = True
     if len(last_cluster) != len(current_cluster):
         return False
     lenc = len(current_cluster)
-    # ...
-    return is_consistent
+    for i in range(0, lenc):
+        if len(last_cluster[i]) != len(current_cluster[i]):
+            return False
+        lencc = len(last_cluster[i])
+        for j in range(0, lencc):
+            if last_cluster[i][j] != current_cluster[i][j]:
+                return False
+    return True
 
 
 def calculate_dis(point_1, point_2):
@@ -17,23 +22,33 @@ def calculate_dis(point_1, point_2):
 
 # 先以二分类为例
 def kmeans(data, K):
-    center_1 = data[random.randint(0, K // 2)]
-    center_2 = data[random.randint(K // 2 + 1, K)]
-    cluster_1 = [center_1]
-    cluster_2 = [center_2]
-    last_clusters = []
     lenc = len(data)
+    # center of cluster_1
+    center_1 = data[random.randint(0, lenc // K - 1)]
+    # center of cluster_2
+    center_2 = data[random.randint(lenc // K, lenc - 1)]
+    # cluster_1 set
+    cluster_1 = []
+    # cluster_2 set
+    cluster_2 = []
+    last_clusters = []
     while not check_consistent(last_clusters, [cluster_1, cluster_2]):
+        last_clusters = [cluster_1, cluster_2]
         dis_1 = []
         dis_2 = []
+        cluster_1.clear()
+        cluster_2.clear()
+        # calculate distance between each cluster
         for i in range(0, lenc):
             dis_1.append(calculate_dis(center_1, data[i]))
             dis_2.append(calculate_dis(center_2, data[i]))
+        # classification
         for i in range(0, lenc):
             if dis_1[i] <= dis_2[i]:
                 cluster_1.append(data[i])
             else:
                 cluster_2.append(data[i])
+        # current clusters have generated, now calculate new centers
         new_cluster1_center_x = 0
         new_cluster1_center_y = 0
         new_cluster2_center_x = 0
@@ -52,8 +67,8 @@ def kmeans(data, K):
         new_cluster2_center_y /= len_cluster2
         center_1 = [new_cluster1_center_x, new_cluster1_center_y]
         center_2 = [new_cluster2_center_x, new_cluster2_center_y]
-    return [cluster_1, cluster_2]
-        
+    return last_clusters
+
 
 if __name__ == '__main__':
     data = [
