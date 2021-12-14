@@ -5,6 +5,7 @@ K-means impl, take square for example
 """
 import random
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def check_consistent(last_cluster, current_cluster):
@@ -34,7 +35,39 @@ def calculate_dis(point_1, point_2):
     @param: point_2 []
     @return: square distance  --float64
     """
-    return pow((point_1[0] - point_2[0]), 2) + pow((point_1[1] - point_2[1]), 2)
+    lenp = len(point_1)
+    dis = 0
+    for i in range(0, lenp):
+        dis += pow((point_1[i] - point_2[i]), 2)
+    return dis
+
+
+def plot_cluster_result(clusters):
+    """
+    plot clusters result (only 2D-dimension)
+    :param clusters: [[ ]]
+    :return: none
+    """
+    lenc = len(clusters)
+    for i in range(0, lenc):
+        plt.scatter(np.asarray(clusters[i])[:, 0], np.asarray(clusters[i])[:, 1])
+    plt.show()
+
+
+def generate_2d_points(n, x_min, x_max, y_min, y_max):
+    """
+    generate 2D points
+    :param n: how many points
+    :param x_range: range of X
+    :param y_range: range of Y
+    :return: random points  [[ ]]
+    """
+    data = []
+    for i in range(0, n):
+        x = random.randint(x_min, x_max)
+        y = random.randint(y_min, y_max)
+        data.append([x, y])
+    return data
 
 
 def kmeans(data, K):
@@ -44,6 +77,8 @@ def kmeans(data, K):
     :param: K  -- number of clusters
     :return: clusters  -- [[ ]]
     """
+    if K <= 0:
+        raise Exception("K should be equal or larger than zero!", K)
     # how many points
     lent = len(data)
     # how many points does a segment contains
@@ -71,7 +106,7 @@ def kmeans(data, K):
                 dis[j].append(calculate_dis(centers[j], data[i]))
         # classify point into corresponding cluster
         for i in range(0, lent):
-            max_dis = 99999999999999999999999999999999
+            max_dis = float("inf")
             max_dis_id = -1
             for j in range(0, K):
                 if dis[j][i] < max_dis:
@@ -97,20 +132,14 @@ def kmeans(data, K):
     return last_clusters
 
 
-def plot_cluster_result(clusters):
-    """
-    plot clusters result
-    :param clusters: [[ ]]
-    :return: none
-    """
-    pass
-
-
 if __name__ == '__main__':
-    data = [
-        [0, 0], [1, 0],
-        [6, 5], [5, 6],
-        [3, 3], [3, 4]
-    ]
-    clusters = kmeans(data, 2)
-    print(clusters)
+    # data = [
+    #     [0, 0], [1, 0], [0, 1],
+    #     [6, 5], [5, 6], [6, 6]
+    # ]
+    data = generate_2d_points(100, 0, 300, 0, 300)
+    data.extend(generate_2d_points(100, 500, 700, 500, 700))
+    data.extend(generate_2d_points(100, 1000, 1200, 1000, 1200))
+    clusters = kmeans(data, 3)
+    # print(clusters)
+    plot_cluster_result(clusters)
