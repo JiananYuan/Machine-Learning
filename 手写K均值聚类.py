@@ -1,8 +1,19 @@
-# take 2-dimention for example
+"""
+K-means impl, take square for example
+@Author: JiananYuan
+@Date: 2021/12/14
+"""
 import random
+import matplotlib.pyplot as plt
 
 
 def check_consistent(last_cluster, current_cluster):
+    """
+    check whether last_cluster is the same as current_cluster
+    :param: last_cluster [[ ]]
+    :param: current_cluster [[ ]]
+    :return: is_consistent  --bool
+    """
     if len(last_cluster) != len(current_cluster):
         return False
     lenc = len(current_cluster)
@@ -17,63 +28,89 @@ def check_consistent(last_cluster, current_cluster):
 
 
 def calculate_dis(point_1, point_2):
+    """
+    calculate the distance between point_1 and point_2
+    @param: point_1 []
+    @param: point_2 []
+    @return: square distance  --float64
+    """
     return pow((point_1[0] - point_2[0]), 2) + pow((point_1[1] - point_2[1]), 2)
 
 
-# 先以二分类为例
 def kmeans(data, K):
-    lenc = len(data)
-    # center of cluster_1
-    center_1 = data[random.randint(0, lenc // K - 1)]
-    # center of cluster_2
-    center_2 = data[random.randint(lenc // K, lenc - 1)]
-    # cluster_1 set
-    cluster_1 = []
-    # cluster_2 set
-    cluster_2 = []
+    """
+    kmeans kernel function
+    :param: data  -- [[ ]]
+    :param: K  -- number of clusters
+    :return: clusters  -- [[ ]]
+    """
+    # how many points
+    lent = len(data)
+    # how many points does a segment contains
+    lens = lent // K
+    # center of clusters
+    centers = []
+    for i in range(0, K):
+        centers.append(data[random.randint(i * lens, (i + 1) * lens - 1)])
+    # clusters set
+    clusters = []
+    for i in range(0, K):
+        clusters.append([])
     last_clusters = []
-    while not check_consistent(last_clusters, [cluster_1, cluster_2]):
-        last_clusters = [cluster_1, cluster_2]
-        dis_1 = []
-        dis_2 = []
-        cluster_1.clear()
-        cluster_2.clear()
+    while not check_consistent(last_clusters, clusters):
+        last_clusters = clusters
+        for i in range(0, K):
+            clusters[i].clear()
+        # dis: [[]]  -- dis[i][j]: distance between centers[i] and data[j]
+        dis = []
+        for i in range(0, K):
+            dis.append([])
         # calculate distance between each cluster
-        for i in range(0, lenc):
-            dis_1.append(calculate_dis(center_1, data[i]))
-            dis_2.append(calculate_dis(center_2, data[i]))
-        # classification
-        for i in range(0, lenc):
-            if dis_1[i] <= dis_2[i]:
-                cluster_1.append(data[i])
-            else:
-                cluster_2.append(data[i])
+        for i in range(0, lent):
+            for j in range(0, K):
+                dis[j].append(calculate_dis(centers[j], data[i]))
+        # classify point into corresponding cluster
+        for i in range(0, lent):
+            max_dis = 99999999999999999999999999999999
+            max_dis_id = -1
+            for j in range(0, K):
+                if dis[j][i] < max_dis:
+                    max_dis = dis[j][i]
+                    max_dis_id = j
+            clusters[max_dis_id].append(data[i])
         # current clusters have generated, now calculate new centers
-        new_cluster1_center_x = 0
-        new_cluster1_center_y = 0
-        new_cluster2_center_x = 0
-        new_cluster2_center_y = 0
-        len_cluster1 = len(cluster_1)
-        len_cluster2 = len(cluster_2)
-        for i in range(0, len_cluster1):
-            new_cluster1_center_x += cluster_1[i][0]
-            new_cluster1_center_y += cluster_1[i][1]
-        for i in range(0, len_cluster2):
-            new_cluster2_center_x += cluster_2[i][0]
-            new_cluster2_center_y += cluster_2[i][1]
-        new_cluster1_center_x /= len_cluster1
-        new_cluster1_center_y /= len_cluster1
-        new_cluster2_center_x /= len_cluster2
-        new_cluster2_center_y /= len_cluster2
-        center_1 = [new_cluster1_center_x, new_cluster1_center_y]
-        center_2 = [new_cluster2_center_x, new_cluster2_center_y]
+        new_clusters_center_x = []
+        new_clusters_center_y = []
+        len_clusters = []
+        for i in range(0, K):
+            len_clusters.append(len(clusters[i]))
+            new_clusters_center_x.append(0)
+            new_clusters_center_y.append(0)
+        for i in range(0, K):
+            for j in range(0, len_clusters[i]):
+                new_clusters_center_x[i] += clusters[i][j][0]
+                new_clusters_center_y[i] += clusters[i][j][1]
+        for i in range(0, K):
+            new_clusters_center_x[i] /= len_clusters[i]
+            new_clusters_center_y[i] /= len_clusters[i]
+            centers[i] = [new_clusters_center_x[i], new_clusters_center_y[i]]
     return last_clusters
+
+
+def plot_cluster_result(clusters):
+    """
+    plot clusters result
+    :param clusters: [[ ]]
+    :return: none
+    """
+    pass
 
 
 if __name__ == '__main__':
     data = [
-        [0, 0], [1, 0], [0, 1],
-        [6, 6], [6, 5], [5, 6]
+        [0, 0], [1, 0],
+        [6, 5], [5, 6],
+        [3, 3], [3, 4]
     ]
     clusters = kmeans(data, 2)
     print(clusters)
